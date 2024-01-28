@@ -22,13 +22,14 @@ public class MandjetSupportingLD extends ServingLogicalDevice {
     public MandjetSupportingLD(ManagementLogicalDevice managementLD,
                                String logicalDeviceName,
                                GXDLMSAssociationLogicalName ln,
+                               String password,
                                GXDLMSTcpUdpSetup wrapper,
                                short sap,
                                MandjetService mandjetService) {
         super(managementLD, logicalDeviceName, ln, wrapper, sap);
         this.mandjetService = mandjetService;
         ln.getAuthenticationMechanismName().setMechanismId(Authentication.LOW);
-        ln.setSecret("password".getBytes());
+        ln.setSecret(password.getBytes());
     }
 
     @Override

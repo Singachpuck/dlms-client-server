@@ -53,9 +53,16 @@ public class ServerManager implements IGXMediaListener, IGXNetListener {
                 new GXDLMSAssociationLogicalName(MANAGEMENT_AA_LN),
                 wrapper,
                 mandjetService);
+
+        final String password = System.getenv("DLMS_SUPPORTING_LD_PASSWORD");
+        if (password == null) {
+            throw new IllegalStateException("Dlms password is not specified. Please, set DLMS_SUPPORTING_LD_PASSWORD environmental variable.");
+        }
+
         this.supportingLD = new MandjetSupportingLD(this.managementLD,
                 DLMSUtil.generateLDN(MANUFACTURER_ID),
                 new GXDLMSAssociationLogicalName(SUPPORTING_AA_LN),
+                password,
                 wrapper,
                 SUPPORTING_LD_SAP,
                 mandjetService);
