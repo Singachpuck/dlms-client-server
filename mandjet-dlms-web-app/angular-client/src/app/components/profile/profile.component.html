@@ -1,0 +1,94 @@
+<app-notification></app-notification>
+<app-header [requestUser]="true" (userEvent)="populateUser($event)"></app-header>
+<section class="container profile pt-5">
+  <div class="row settings-wrapper">
+    <aside class="col-2 settings-panel">
+      <nav class="nav nav-tabs flex-column setting-panel-nav" id="nav-tab" role="tablist">
+        <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Profile</button>
+        <button class="nav-link" id="nav-recent-tab" data-bs-toggle="tab" data-bs-target="#nav-recent" type="button" role="tab" aria-controls="nav-recent" aria-selected="false">Client Config</button>
+        <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Danger Zone</button>
+      </nav>
+    </aside>
+    <article class="col">
+      <div class="tab-content settings-info" id="nav-tabContent">
+        <div class="tab-pane show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+          <div class="forms-wrapper">
+            <form action="#" [formGroup]="userUpdate" (ngSubmit)="onUsernameUpdate()">
+              <div class="mb-3 row">
+                <label for="update-username-input" class="col-2 col-form-label">Username</label>
+                <div class="col-3">
+                  <input type="text" class="form-control" [ngClass]="{ 'is-invalid': userSubmitted && username?.errors }"
+                         id="update-username-input" placeholder="New username" formControlName="username" [value]="user?.username">
+                  <!--Error messages-->
+                  <div *ngIf="userSubmitted && username?.invalid" class="invalid-feedback">
+                    <div *ngIf="username?.errors?.['required']">
+                      Username is required.
+                    </div>
+                    <div *ngIf="username?.errors?.['maxlength']">
+                      Username must be at most 50 characters long.
+                    </div>
+                    <div *ngIf="username?.errors?.['whitespace'] && !username?.errors?.['required']">
+                      Username can not contain only whitespaces.
+                    </div>
+                  </div>
+                </div>
+                <div class="col-1">
+                  <button type="submit" class="btn btn-primary">Confirm</button>
+                </div>
+              </div>
+            </form>
+            <form action="#" [formGroup]="userUpdate" (ngSubmit)="onEmailUpdate()">
+              <div class="mb-3 row">
+                <label for="update-email-input" class="col-2 col-form-label">Email</label>
+                <div class="col-3">
+                  <input type="text" class="form-control" [ngClass]="{ 'is-invalid': emailSubmitted && email?.errors }"
+                         id="update-email-input" placeholder="New email" formControlName="email" [value]="user?.email">
+                  <!--Error messages-->
+                  <div *ngIf="emailSubmitted && email?.invalid" class="invalid-feedback">
+                    <div *ngIf="email?.errors?.['required']">
+                      Email is required.
+                    </div>
+                    <div *ngIf="email?.errors?.['email']">
+                      Email is not valid.
+                    </div>
+                  </div>
+                </div>
+                <div class="col-1">
+                  <button type="submit" class="btn btn-primary">Confirm</button>
+                </div>
+              </div>
+            </form>
+            <form action="#" [formGroup]="userUpdate" (ngSubmit)="onPasswordUpdate()">
+              <div class="mb-3 row">
+                <label for="update-password-input" class="col-2 col-form-label">Password</label>
+                <div class="col-3">
+                  <input type="password" class="form-control" [ngClass]="{ 'is-invalid': passwordSubmitted && password?.errors }"
+                         id="update-password-input" placeholder="New password" formControlName="password">
+                  <!--Error messages-->
+                  <div *ngIf="passwordSubmitted && password?.invalid" class="invalid-feedback">
+                    <div *ngIf="password?.errors?.['required']">
+                      Password is required.
+                    </div>
+                  </div>
+                </div>
+                <div class="col-1">
+                  <button type="submit" class="btn btn-primary">Confirm</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="tab-pane" id="nav-recent" role="tabpanel" aria-labelledby="nav-recent-tab">
+          <h1>TODO</h1>
+        </div>
+        <div class="tab-pane" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+          <div class="danger-zone-wrapper">
+            <form action="#" class="delete-acc-container" (submit)="onDeleteAccount($event)">
+              <button class="btn btn-danger" type="submit">Delete account</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

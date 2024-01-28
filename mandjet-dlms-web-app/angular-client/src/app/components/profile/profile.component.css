@@ -1,0 +1,29 @@
+.profile {
+  padding-bottom: 50px;
+}
+
+.settings-wrapper {
+  border: 1px solid grey;
+  border-radius: 20px;
+  min-height: 80vh;
+}
+
+.settings-panel {
+  border-right: 1px solid grey;
+}
+
+.setting-panel-nav {
+  border: 0;
+}
+
+.setting-panel-nav > .nav-link {
+  border-radius: var(--bs-nav-tabs-border-radius);
+}
+
+.setting-panel-nav > .active {
+  border-color: var(--bs-border-color);
+}
+
+.settings-info {
+  padding: 50px 0 0 60px;
+}

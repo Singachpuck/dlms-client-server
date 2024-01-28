@@ -1,0 +1,30 @@
+#nav-tabContent {
+  height: 600px;
+  overflow-y: scroll;
+}
+
+.battery-tab {
+  padding: 200px 100px;
+}
+
+.battery-tab > .progress {
+  height: 75px;
+}
+
+.voltage-img {
+  position: relative;
+}
+
+.voltage-img > img {
+  user-select: none;
+}
+
+.voltage-label {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  font-weight: bold;
+  font-size: 3rem;
+}

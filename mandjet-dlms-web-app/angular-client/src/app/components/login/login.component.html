@@ -1,0 +1,42 @@
+<app-notification></app-notification>
+<app-header [displayControls]="true"></app-header>
+<section class="container form-container">
+  <div class="form-wrapper">
+    <form action="#" [formGroup]="userForm" (ngSubmit)="onUserLogin()">
+      <fieldset>
+        <legend>Login</legend>
+        <div class="mb-3">
+          <label for="username-input" class="form-label">Username</label>
+          <input type="text" class="form-control" [ngClass]="{ 'is-invalid': submitted && username?.errors }"
+                 id="username-input" formControlName="username" aria-describedby="usernameHelp" required>
+          <div id="usernameHelp" class="form-text">Valid username.</div>
+          <!--Error messages-->
+          <div *ngIf="submitted && username?.invalid" class="invalid-feedback">
+            <div *ngIf="username?.errors?.['required']">
+              Username is required.
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="password-input" class="form-label">Password</label>
+          <input type="password" class="form-control" [ngClass]="{ 'is-invalid': submitted && password?.errors }"
+                 id="password-input" formControlName="password" aria-describedby="passwordHelp" required>
+          <div id="passwordHelp" class="form-text">Valid password.</div>
+          <!--Error messages-->
+          <div *ngIf="submitted && username?.invalid" class="invalid-feedback">
+            <div *ngIf="username?.errors?.['required']">
+              Password is required.
+            </div>
+          </div>
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </fieldset>
+      <div class="mt-3 fs-6 text-center">
+        <div>New to the Your App Here?</div>
+        <div><a href="/signup">Sign up</a></div>
+      </div>
+    </form>
+  </div>
+</section>
