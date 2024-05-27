@@ -1,6 +1,8 @@
 package com.imt.dlms.server.core;
 
+import com.imt.dlms.server.service.DLMSNotifyService;
 import com.imt.dlms.server.service.DLMSUtil;
+import com.imt.dlms.server.service.Scheduler;
 import gurux.dlms.GXSimpleEntry;
 import gurux.dlms.objects.GXDLMSAssociationLogicalName;
 import gurux.dlms.objects.GXDLMSSapAssignment;
@@ -14,8 +16,9 @@ public abstract class ManagementLogicalDevice extends LogicalDevice {
 
     public ManagementLogicalDevice(String logicalDeviceName,
                                    GXDLMSAssociationLogicalName ln,
-                                   GXDLMSTcpUdpSetup wrapper) {
-        super(logicalDeviceName, ln, wrapper, MANAGEMENT_LD_SAP);
+                                   GXDLMSTcpUdpSetup wrapper,
+                                   DLMSNotifyService notify) {
+        super(logicalDeviceName, ln, wrapper, MANAGEMENT_LD_SAP, notify);
         ln.setClientSAP(DLMSUtil.PUBLIC_CLIENT_SAP);
     }
 

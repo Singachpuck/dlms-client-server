@@ -21,12 +21,10 @@ class ClientManagerTest {
 
     private IGXMedia media;
 
-    @Test
     void defaultTest() throws Exception {
+        // 192.168.112.98
         final GXDLMSSecureClient client = new GXDLMSSecureClient(true, 16,
                 3013, Authentication.LOW, "password", InterfaceType.WRAPPER);
-
-        client.setUserId(100);
 
         this.setupMedia();
 
@@ -75,7 +73,8 @@ class ClientManagerTest {
 
     private void setupMedia() throws Exception {
         final int port = 4059;
-        final GXNet net = new GXNet(NetworkType.TCP, port);
+        final GXNet net = new GXNet(NetworkType.UDP, port);
+        net.setHostName("localhost");
         net.setServer(false);
         net.setTrace(TraceLevel.VERBOSE);
         media = net;

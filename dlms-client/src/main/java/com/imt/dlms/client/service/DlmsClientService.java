@@ -1,6 +1,7 @@
 package com.imt.dlms.client.service;
 
 import gurux.common.IGXMedia;
+import gurux.dlms.GXDLMSClient;
 import gurux.dlms.GXReplyData;
 import gurux.dlms.enums.InterfaceType;
 import gurux.dlms.enums.Security;
@@ -11,13 +12,13 @@ import gurux.dlms.secure.GXDLMSSecureClient;
 
 public class DlmsClientService {
 
-    private final GXDLMSSecureClient dlms;
+    private final GXDLMSClient dlms;
 
     private final IGXMedia media;
 
     private final DlmsReader reader;
 
-    public DlmsClientService(GXDLMSSecureClient dlms, IGXMedia media) {
+    public DlmsClientService(GXDLMSClient dlms, IGXMedia media) {
         this.dlms = dlms;
         this.media = media;
         this.reader = new DlmsReader(dlms, media);
@@ -96,7 +97,7 @@ public class DlmsClientService {
                 // problems.
                 if (dlms.getInterfaceType() == InterfaceType.WRAPPER
                         || (dlms.getInterfaceType() == InterfaceType.HDLC
-                        && dlms.getCiphering()
+                        && (dlms instanceof GXDLMSSecureClient s) && s.getCiphering()
                         .getSecurity() != Security.NONE)) {
                     reader.readDataBlock(dlms.releaseRequest(), reply);
                 }

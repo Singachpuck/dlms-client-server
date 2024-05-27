@@ -1,7 +1,11 @@
 package com.imt.dlms.server.core;
 
 import com.imt.dlms.server.ServerManager;
+import com.imt.dlms.server.service.DLMSNotifyService;
+import com.imt.dlms.server.service.DLMSUtil;
+import com.imt.dlms.server.service.PushListener;
 import gurux.dlms.GXDLMSConnectionEventArgs;
+import gurux.dlms.GXDLMSNotify;
 import gurux.dlms.ValueEventArgs;
 import gurux.dlms.enums.*;
 import gurux.dlms.objects.*;
@@ -11,19 +15,29 @@ import java.util.Arrays;
 
 // TODO: Add clock object +, support users -, set conformance +, add profile generic read +, mandjet model +, add high authentication (optional) -,
 //  update permissions +, add None Authentication to supporting server -
-public abstract class LogicalDevice extends GXDLMSSecureServer2 implements Initializable {
+public abstract class LogicalDevice extends GXDLMSSecureServer2 implements PushListener, Initializable {
 
     private final String logicalDeviceName;
 
     private final GXDLMSAssociationLogicalName aa;
 
+    private final DLMSNotifyService notifyService;
+
+    private final GXDLMSNotify notify;
+
     public LogicalDevice(String logicalDeviceName,
                          GXDLMSAssociationLogicalName ln,
                          GXDLMSTcpUdpSetup wrapper,
-                         short sap) {
+                         short sap,
+                         DLMSNotifyService notify) {
         super(ln, wrapper);
         this.logicalDeviceName = logicalDeviceName;
         this.aa = ln;
+        this.notifyService = notify;
+        this.notify = new GXDLMSNotify(true,
+                DLMSUtil.PUBLIC_CLIENT_SAP,
+                sap,
+                InterfaceType.WRAPPER);
         ln.setServerSAP(sap);
     }
 
@@ -199,5 +213,13 @@ public abstract class LogicalDevice extends GXDLMSSecureServer2 implements Initi
 
     public int getLogicalDeviceSAP() {
         return aa.getServerSAP();
+    }
+
+    public DLMSNotifyService getNotifyService() {
+        return notifyService;
+    }
+
+    public GXDLMSNotify getNotify() {
+        return notify;
     }
 }

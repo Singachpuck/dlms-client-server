@@ -4,12 +4,15 @@ import com.imt.dlms.server.core.ManagementLogicalDevice;
 import com.imt.dlms.server.core.ServingLogicalDevice;
 import com.imt.dlms.server.impl.MandjetManagementLD;
 import com.imt.dlms.server.impl.MandjetSupportingLD;
-import com.imt.dlms.server.service.DLMSUtil;
-import com.imt.dlms.server.service.MandjetService;
+import com.imt.dlms.server.service.*;
 import gurux.common.*;
 import gurux.common.enums.TraceLevel;
+import gurux.dlms.GXDLMSNotify;
 import gurux.dlms.GXServerReply;
+import gurux.dlms.enums.InterfaceType;
 import gurux.dlms.objects.GXDLMSAssociationLogicalName;
+import gurux.dlms.objects.GXDLMSPushSetup;
+import gurux.dlms.objects.GXDLMSScriptTable;
 import gurux.dlms.objects.GXDLMSTcpUdpSetup;
 import gurux.net.ConnectionEventArgs;
 import gurux.net.GXNet;
@@ -40,19 +43,31 @@ public class ServerManager implements IGXMediaListener, IGXNetListener {
 
     public static final short SUPPORTING_LD_SAP = 3013;
 
+    public static final int SCHEDULER_THREADS = 2;
+
     private final ManagementLogicalDevice managementLD;
 
     private final ServingLogicalDevice supportingLD;
+
+    private final DLMSNotifyService notify;
 
     private IGXMedia media;
 
     public ServerManager() {
         final GXDLMSTcpUdpSetup wrapper = new GXDLMSTcpUdpSetup();
         final MandjetService mandjetService = new MandjetService();
+
+        // Notify service
+        this.notify = new DLMSNotifyService(
+                new DefaultScheduler(SCHEDULER_THREADS),
+                null
+        );
+
         this.managementLD = new MandjetManagementLD(DLMSUtil.generateLDN(MANUFACTURER_ID),
                 new GXDLMSAssociationLogicalName(MANAGEMENT_AA_LN),
                 wrapper,
-                mandjetService);
+                mandjetService,
+                this.notify);
 
         final String password = System.getenv("DLMS_SUPPORTING_LD_PASSWORD");
         if (password == null) {
@@ -65,7 +80,8 @@ public class ServerManager implements IGXMediaListener, IGXNetListener {
                 password,
                 wrapper,
                 SUPPORTING_LD_SAP,
-                mandjetService);
+                mandjetService,
+                this.notify);
 
         this.managementLD.assignLogicalDevice(this.supportingLD);
     }
@@ -78,10 +94,13 @@ public class ServerManager implements IGXMediaListener, IGXNetListener {
 
     private void setupMedia() throws Exception {
         final int port = this.managementLD.getSettings().getWrapper().getPort();
-        media = new GXNet(NetworkType.TCP, port);
-        media.setTrace(TraceLevel.VERBOSE);
-        media.addListener(this);
-        media.open();
+        final GXNet net = new GXNet(NetworkType.UDP, port);
+//        net.setServer(false);
+        net.setTrace(TraceLevel.VERBOSE);
+        net.addListener(this);
+        net.open();
+        media = net;
+        this.notify.setMedia(media);
     }
 
     @Override
@@ -120,7 +139,7 @@ public class ServerManager implements IGXMediaListener, IGXNetListener {
 
     @Override
     public void onMediaStateChange(Object o, MediaStateEventArgs mediaStateEventArgs) {
-        System.out.println("onMediaStateChange");
+        System.out.println(mediaStateEventArgs.getState() + " " + mediaStateEventArgs.getAccept());
 
     }
 

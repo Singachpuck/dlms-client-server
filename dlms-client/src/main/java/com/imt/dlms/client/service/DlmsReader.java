@@ -9,13 +9,13 @@ import gurux.dlms.secure.GXDLMSSecureClient;
 
 public class DlmsReader {
 
-    private final GXDLMSSecureClient dlms;
+    private final GXDLMSClient dlms;
 
     private final IGXMedia media;
 
     private final int waitTime = 60000;
 
-    public DlmsReader(GXDLMSSecureClient dlms, IGXMedia media) {
+    public DlmsReader(GXDLMSClient dlms, IGXMedia media) {
         this.dlms = dlms;
         this.media = media;
     }

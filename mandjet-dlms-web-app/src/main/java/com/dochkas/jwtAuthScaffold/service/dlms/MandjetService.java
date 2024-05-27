@@ -5,6 +5,7 @@ import com.dochkas.jwtAuthScaffold.model.dto.MandjetDto;
 import com.imt.dlms.client.service.DlmsClientService;
 import gurux.common.IGXMedia;
 import gurux.common.enums.TraceLevel;
+import gurux.dlms.GXDLMSClient;
 import gurux.dlms.enums.Authentication;
 import gurux.dlms.enums.InterfaceType;
 import gurux.dlms.enums.ObjectType;
@@ -14,7 +15,11 @@ import gurux.dlms.objects.GXDLMSRegister;
 import gurux.dlms.secure.GXDLMSSecureClient;
 import gurux.net.GXNet;
 import gurux.net.enums.NetworkType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
@@ -23,16 +28,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class MandjetService implements InitializingBean, EnvironmentAware {
 
+    private final Logger logger = LoggerFactory.getLogger(NotificationHandler.class);
+
     private Environment env;
 
     @Value("${dlms.port}")
     private int dlmsPort;
 
+    @Value("${dlms.host}")
+    private String dlmsHost;
+
     private IGXMedia media;
 
-    private GXDLMSSecureClient managementClient;
+    @Autowired
+    @Qualifier("dlmsManagementClient")
+    private GXDLMSClient managementClient;
 
-    private GXDLMSSecureClient supportingClient;
+    @Autowired
+    @Qualifier("dlmsSupportingClient")
+    private GXDLMSClient supportingClient;
 
     private DlmsClientService managementService;
 
@@ -40,40 +54,34 @@ public class MandjetService implements InitializingBean, EnvironmentAware {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        final int port = dlmsPort;
-        final GXNet net = new GXNet(NetworkType.TCP, port);
+        final GXNet net = new GXNet(NetworkType.UDP, dlmsPort);
+        net.setHostName(dlmsHost);
         net.setServer(false);
         net.setTrace(TraceLevel.VERBOSE);
         this.media = net;
 
-        this.managementClient = new GXDLMSSecureClient(true, 16,
-                1, Authentication.NONE, null, InterfaceType.WRAPPER);
-
-        this.supportingClient = new GXDLMSSecureClient(true, 16,
-                3013, Authentication.LOW, env.getProperty("DLMS_PASSWORD"), InterfaceType.WRAPPER);
-
         this.managementService = new DlmsClientService(managementClient, media);
         this.supportingService = new DlmsClientService(supportingClient, media);
 
-        try {
-            if (!media.isOpen()) {
-                media.open();
-            }
-
-            managementService.connect();
-            managementService.readAssociationView();
-
-            managementService.disconnect();
-
-            supportingService.connect();
-            supportingService.readAssociationView();
-            System.out.println(supportingClient.getObjects());
-            supportingService.disconnect();
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        } finally {
-            media.close();
-        }
+//        try {
+//            if (!media.isOpen()) {
+//                media.open();
+//            }
+//
+//            managementService.connect();
+//            managementService.readAssociationView();
+//
+//            managementService.disconnect();
+//
+//            supportingService.connect();
+//            supportingService.readAssociationView();
+//            logger.trace(supportingClient.getObjects().toString());
+//            supportingService.disconnect();
+//        } catch (Exception e) {
+//            System.err.println(e.getMessage());
+//        } finally {
+//            media.close();
+//        }
     }
 
     @Override

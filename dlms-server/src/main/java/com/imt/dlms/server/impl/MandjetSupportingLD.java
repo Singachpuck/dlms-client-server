@@ -2,21 +2,27 @@ package com.imt.dlms.server.impl;
 
 import com.imt.dlms.server.core.ManagementLogicalDevice;
 import com.imt.dlms.server.core.ServingLogicalDevice;
+import com.imt.dlms.server.service.DLMSNotifyService;
 import com.imt.dlms.server.service.MandjetService;
+import com.imt.dlms.server.service.Scheduler;
+import gurux.dlms.GXSimpleEntry;
 import gurux.dlms.GXUInt32;
 import gurux.dlms.ValueEventArgs;
 import gurux.dlms.enums.*;
 import gurux.dlms.objects.*;
 import gurux.dlms.objects.enums.SortMethod;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class MandjetSupportingLD extends ServingLogicalDevice {
+
+    private static final int PUSH_SEND_INTERVAL = 10;
 
     private static final int REGISTER_COUNT = 6;
 
     private final MandjetService mandjetService;
+
+    private Long pushScheduleId;
 
 
     public MandjetSupportingLD(ManagementLogicalDevice managementLD,
@@ -25,8 +31,9 @@ public class MandjetSupportingLD extends ServingLogicalDevice {
                                String password,
                                GXDLMSTcpUdpSetup wrapper,
                                short sap,
-                               MandjetService mandjetService) {
-        super(managementLD, logicalDeviceName, ln, wrapper, sap);
+                               MandjetService mandjetService,
+                               DLMSNotifyService notify) {
+        super(managementLD, logicalDeviceName, ln, wrapper, sap, notify);
         this.mandjetService = mandjetService;
         ln.getAuthenticationMechanismName().setMechanismId(Authentication.LOW);
         ln.setSecret(password.getBytes());
@@ -34,13 +41,16 @@ public class MandjetSupportingLD extends ServingLogicalDevice {
 
     @Override
     public void init() {
-        this.addVoltageRegister();
+        final GXDLMSRegister voltage = this.addVoltageRegister();
         final List<GXDLMSRegister> registers = this.populateMandjetEmonTxRegisters();
         this.addMandjetSocketProfile(registers);
+        final GXDLMSPushSetup push = this.addPushSetup(voltage);
         super.init();
+        this.pushScheduleId = this.getNotifyService()
+                .schedulePushMessage(push, this.getNotify(), Collections.singletonList(this), PUSH_SEND_INTERVAL);
     }
 
-    private void addVoltageRegister() {
+    private GXDLMSRegister addVoltageRegister() {
         final GXDLMSRegister d = new GXDLMSRegister("1.0.32.4.0.255");
         d.setValue(0.0f);
         // Set access right. Client can't change Device name.
@@ -48,6 +58,7 @@ public class MandjetSupportingLD extends ServingLogicalDevice {
         d.setUnit(Unit.VOLTAGE);
         d.setDataType(2, DataType.FLOAT32);
         getItems().add(d);
+        return d;
     }
 
     private List<GXDLMSRegister> populateMandjetEmonTxRegisters() {
@@ -79,6 +90,38 @@ public class MandjetSupportingLD extends ServingLogicalDevice {
         getItems().add(pg);
     }
 
+    private GXDLMSPushSetup addPushSetup(GXDLMSRegister voltage) {
+        final GXDLMSPushSetup p = new GXDLMSPushSetup();
+        p.setDestination("localhost:4060");
+        p.getPushObjectList()
+                .add(new GXSimpleEntry<>(voltage,
+                        new GXDLMSCaptureObject(2, 0)));
+//        p.getPushObjectList()
+//                .add(new GXSimpleEntry<>(battery,
+//                        new GXDLMSCaptureObject(2, 0)));
+        return p;
+    }
+
+    @Override
+    public void onBeforePush(GXDLMSPushSetup p) {
+        System.out.println("Sending Push message from supporting LD.");
+
+        for (Map.Entry<GXDLMSObject, GXDLMSCaptureObject> entry : p.getPushObjectList()) {
+            if (entry.getKey() instanceof GXDLMSClock c && entry.getValue().getAttributeIndex() == 2) {
+                c.setTime(c.now());
+            } else if (entry.getKey() instanceof GXDLMSRegister data && entry.getValue().getAttributeIndex() == 2) {
+                if (data.getLogicalName().equals("1.0.32.4.0.255")) {
+                    data.setValue((float) mandjetService.getVoltageFeed());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onAfterPush(GXDLMSPushSetup p) {
+
+    }
+
     @Override
     public void onPreRead(ValueEventArgs[] args) throws Exception {
         super.onPreRead(args);
@@ -108,5 +151,12 @@ public class MandjetSupportingLD extends ServingLogicalDevice {
                 }
             }
         }
+    }
+
+    public void close() throws Exception {
+        if (pushScheduleId != null) {
+            this.getNotifyService().clear(pushScheduleId);
+        }
+        super.close();
     }
 }
