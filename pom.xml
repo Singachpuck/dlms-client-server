@@ -12,6 +12,7 @@
     <modules>
         <module>dlms-server</module>
         <module>dlms-client</module>
+        <module>notification-forwarder</module>
     </modules>
 
     <properties>
@@ -27,6 +28,11 @@
             <groupId>org.gurux</groupId>
             <artifactId>gurux.net</artifactId>
             <version>1.0.22</version>
+        </dependency>
+        <dependency>
+            <groupId>org.gurux</groupId>
+            <artifactId>gurux.serial</artifactId>
+            <version>1.0.27</version>
         </dependency>
         <dependency>
             <groupId>org.gurux</groupId>
