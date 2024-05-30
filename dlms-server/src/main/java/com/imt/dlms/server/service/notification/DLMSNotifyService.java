@@ -1,5 +1,7 @@
-package com.imt.dlms.server.service;
+package com.imt.dlms.server.service.notification;
 
+import com.imt.dlms.server.core.media.LoraE5SerialMedia;
+import com.imt.dlms.server.exception.LoraConfigurationException;
 import gurux.common.IGXMedia;
 import gurux.dlms.GXDLMSNotify;
 import gurux.dlms.objects.GXDLMSPushSetup;
@@ -8,6 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DLMSNotifyService {
 
@@ -21,6 +25,8 @@ public class DLMSNotifyService {
 
     private final HashMap<Long, Future<?>> tasks = new HashMap<>();
 
+    private final Lock lock = new ReentrantLock();
+
     public DLMSNotifyService(Scheduler scheduler, IGXMedia media) {
         this.scheduler = scheduler;
         this.media = media;
@@ -33,21 +39,31 @@ public class DLMSNotifyService {
     public long schedulePushMessage(GXDLMSPushSetup p, GXDLMSNotify notify, List<PushListener> pushListenerList, long period) {
         final Future<?> task = scheduler.schedulePeriodically(() -> {
             for (PushListener pushListener : pushListenerList) {
-                pushListener.onBeforePush(p);
+                pushListener.onBeforePush(new PushListenerArgs(p, 0));
             }
             try {
+                lock.lock();
                 if (!media.isOpen()) {
                     media.open();
                 }
+                if (media instanceof LoraE5SerialMedia lora && !lora.checkJoin()) {
+                    if (!lora.joinNetwork()) {
+                        throw new LoraConfigurationException("Not possible to join Lora Network.");
+                    }
+                }
+                int i = 0;
                 for (byte[] it : notify.generatePushSetupMessages(null, p)) {
                     media.send(it, p.getDestination());
+                    i++;
                 }
 
                 for (PushListener pushListener : pushListenerList) {
-                    pushListener.onAfterPush(p);
+                    pushListener.onAfterPush(new PushListenerArgs(p, i));
                 }
             } catch (Exception e) {
                 System.err.println("Failed to send a push message: " + e.getMessage());
+            } finally {
+                lock.unlock();
             }
         }, DEFAULT_DELAY_SEC, period, TimeUnit.SECONDS);
 

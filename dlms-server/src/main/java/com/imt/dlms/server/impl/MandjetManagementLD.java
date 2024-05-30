@@ -1,23 +1,26 @@
 package com.imt.dlms.server.impl;
 
+import com.imt.dlms.server.ServerManager;
+import com.imt.dlms.server.config.DlmsConfig;
 import com.imt.dlms.server.core.ManagementLogicalDevice;
-import com.imt.dlms.server.service.DLMSNotifyService;
+import com.imt.dlms.server.service.notification.DLMSNotifyService;
 import com.imt.dlms.server.service.MandjetService;
-import gurux.dlms.GXDLMSNotify;
+import com.imt.dlms.server.service.notification.PushListenerArgs;
 import gurux.dlms.GXDateTime;
 import gurux.dlms.GXSimpleEntry;
 import gurux.dlms.ValueEventArgs;
 import gurux.dlms.enums.AccessMode;
 import gurux.dlms.enums.DataType;
+import gurux.dlms.enums.ObjectType;
 import gurux.dlms.objects.*;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
 public class MandjetManagementLD extends ManagementLogicalDevice {
 
-    private static final int PUSH_SEND_INTERVAL = 10;
+    // Seconds
+    private static final int PUSH_SEND_INTERVAL = 60;
 
     private final MandjetService mandjetService;
 
@@ -37,7 +40,12 @@ public class MandjetManagementLD extends ManagementLogicalDevice {
         final GXDLMSClock clock = this.addClock();
         final GXDLMSData battery = this.addBatteryData();
         final GXDLMSPushSetup pushSetup = this.addPushSetup(clock, battery);
+        // Order is important
         super.init();
+        final GXDLMSData ldn = (GXDLMSData) getItems().findByLN(ObjectType.DATA, "0.0.42.0.0.255");
+        pushSetup.getPushObjectList()
+                .add(0, new GXSimpleEntry<>(ldn,
+                        new GXDLMSCaptureObject(2, 0)));
         this.pushScheduleId = this.getNotifyService()
                 .schedulePushMessage(pushSetup, this.getNotify(), Collections.singletonList(this), PUSH_SEND_INTERVAL);
     }
@@ -65,7 +73,7 @@ public class MandjetManagementLD extends ManagementLogicalDevice {
 
     private GXDLMSPushSetup addPushSetup(GXDLMSClock clock, GXDLMSData battery) {
         GXDLMSPushSetup p = new GXDLMSPushSetup();
-        p.setDestination("localhost:4060");
+        p.setDestination(DlmsConfig.CLIENT_ENDPOINT);
         p.getPushObjectList()
                 .add(new GXSimpleEntry<>(clock,
                         new GXDLMSCaptureObject(2, 0)));
@@ -76,10 +84,10 @@ public class MandjetManagementLD extends ManagementLogicalDevice {
     }
 
     @Override
-    public void onBeforePush(GXDLMSPushSetup p) {
+    public void onBeforePush(PushListenerArgs args) {
         System.out.println("Sending Push message.");
 
-        for (Map.Entry<GXDLMSObject, GXDLMSCaptureObject> entry : p.getPushObjectList()) {
+        for (Map.Entry<GXDLMSObject, GXDLMSCaptureObject> entry : args.push().getPushObjectList()) {
             if (entry.getKey() instanceof GXDLMSClock c && entry.getValue().getAttributeIndex() == 2) {
                 c.setTime(c.now());
             } else if (entry.getKey() instanceof GXDLMSData data && entry.getValue().getAttributeIndex() == 2) {
@@ -91,8 +99,8 @@ public class MandjetManagementLD extends ManagementLogicalDevice {
     }
 
     @Override
-    public void onAfterPush(GXDLMSPushSetup p) {
-
+    public void onAfterPush(PushListenerArgs args) {
+        System.out.println("Push sent in " + args.frameNumber() + " frames.");
     }
 
     @Override

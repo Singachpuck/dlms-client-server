@@ -52,4 +52,22 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>tcpip</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <COMMUNICATION_MODE>TCP_IP</COMMUNICATION_MODE>
+            </properties>
+        </profile>
+        <profile>
+            <id>e5lora</id>
+            <properties>
+                <COMMUNICATION_MODE>E5_LORA</COMMUNICATION_MODE>
+            </properties>
+        </profile>
+    </profiles>
+
 </project>

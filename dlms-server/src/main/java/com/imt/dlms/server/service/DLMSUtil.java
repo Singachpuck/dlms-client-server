@@ -8,11 +8,10 @@ public class DLMSUtil {
 
     public static final int LDN_SIZE = 16;
 
-    public static String generateLDN(byte[] manufacturerId) {
-        final Random random = new Random();
+    public static String generateLDN(byte[] manufacturerId, byte[] identifier) {
         final byte[] ldn = new byte[LDN_SIZE];
-        random.nextBytes(ldn);
         System.arraycopy(manufacturerId, 0, ldn, 0, 3);
+        System.arraycopy(identifier, 0, ldn, 3, 13);
         return new String(ldn);
     }
 }

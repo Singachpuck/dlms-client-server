@@ -1,8 +1,7 @@
 package com.imt.dlms.server.core;
 
-import com.imt.dlms.server.service.DLMSNotifyService;
+import com.imt.dlms.server.service.notification.DLMSNotifyService;
 import com.imt.dlms.server.service.DLMSUtil;
-import com.imt.dlms.server.service.Scheduler;
 import gurux.dlms.objects.GXDLMSAssociationLogicalName;
 import gurux.dlms.objects.GXDLMSTcpUdpSetup;
 

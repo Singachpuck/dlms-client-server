@@ -24,6 +24,8 @@ public class MandjetService {
 
     private static final String VOLTAGE_FEED_ID = "80";
 
+    private final String mandjetEndpoint = System.getenv("MANDJET_ENDPOINT");
+
     private final String mandjetReadApiKey = System.getenv("MANDJET_READ_API_KEY");
 
     private final HttpClient client = HttpClient.newHttpClient();
@@ -35,7 +37,7 @@ public class MandjetService {
 
             final HttpRequest request = HttpRequest.newBuilder()
                     .GET()
-                    .uri(new URI(String.format("https://emoncms.fr/feed/fetch.json?ids=%s&apikey=%s",
+                    .uri(new URI(String.format(mandjetEndpoint + "/feed/fetch.json?ids=%s&apikey=%s",
                             EMONTX_FEED_IDS_JOINED, mandjetReadApiKey)))
                     .build();
 
@@ -68,7 +70,7 @@ public class MandjetService {
 
             final HttpRequest request = HttpRequest.newBuilder()
                     .GET()
-                    .uri(new URI(String.format("https://emoncms.fr/feed/get.json?id=%s&field=value&apikey=%s",
+                    .uri(new URI(String.format(mandjetEndpoint + "/feed/get.json?id=%s&field=value&apikey=%s",
                             BATTERY_FEED_ID, mandjetReadApiKey)))
                     .build();
 
@@ -91,7 +93,7 @@ public class MandjetService {
         try {
             final HttpRequest request = HttpRequest.newBuilder()
                     .GET()
-                    .uri(new URI(String.format("https://emoncms.fr/feed/get.json?id=%s&field=value&apikey=%s",
+                    .uri(new URI(String.format(mandjetEndpoint + "/feed/get.json?id=%s&field=value&apikey=%s",
                             VOLTAGE_FEED_ID, mandjetReadApiKey)))
                     .build();
 

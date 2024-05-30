@@ -1,4 +1,4 @@
-package com.imt.dlms.server.service;
+package com.imt.dlms.server.service.notification;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

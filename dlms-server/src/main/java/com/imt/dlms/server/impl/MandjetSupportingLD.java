@@ -1,12 +1,13 @@
 package com.imt.dlms.server.impl;
 
+import com.imt.dlms.server.ServerManager;
+import com.imt.dlms.server.config.DlmsConfig;
 import com.imt.dlms.server.core.ManagementLogicalDevice;
 import com.imt.dlms.server.core.ServingLogicalDevice;
-import com.imt.dlms.server.service.DLMSNotifyService;
+import com.imt.dlms.server.service.notification.DLMSNotifyService;
 import com.imt.dlms.server.service.MandjetService;
-import com.imt.dlms.server.service.Scheduler;
+import com.imt.dlms.server.service.notification.PushListenerArgs;
 import gurux.dlms.GXSimpleEntry;
-import gurux.dlms.GXUInt32;
 import gurux.dlms.ValueEventArgs;
 import gurux.dlms.enums.*;
 import gurux.dlms.objects.*;
@@ -16,7 +17,8 @@ import java.util.*;
 
 public class MandjetSupportingLD extends ServingLogicalDevice {
 
-    private static final int PUSH_SEND_INTERVAL = 10;
+    // Seconds
+    private static final int PUSH_SEND_INTERVAL = 30;
 
     private static final int REGISTER_COUNT = 6;
 
@@ -44,8 +46,13 @@ public class MandjetSupportingLD extends ServingLogicalDevice {
         final GXDLMSRegister voltage = this.addVoltageRegister();
         final List<GXDLMSRegister> registers = this.populateMandjetEmonTxRegisters();
         this.addMandjetSocketProfile(registers);
-        final GXDLMSPushSetup push = this.addPushSetup(voltage);
+        final GXDLMSPushSetup push = this.addPushSetup(voltage, registers);
+        // Order is important
         super.init();
+        final GXDLMSData ldn = (GXDLMSData) getItems().findByLN(ObjectType.DATA, "0.0.42.0.0.255");
+        push.getPushObjectList()
+                .add(0, new GXSimpleEntry<>(ldn,
+                        new GXDLMSCaptureObject(2, 0)));
         this.pushScheduleId = this.getNotifyService()
                 .schedulePushMessage(push, this.getNotify(), Collections.singletonList(this), PUSH_SEND_INTERVAL);
     }
@@ -90,23 +97,25 @@ public class MandjetSupportingLD extends ServingLogicalDevice {
         getItems().add(pg);
     }
 
-    private GXDLMSPushSetup addPushSetup(GXDLMSRegister voltage) {
+    private GXDLMSPushSetup addPushSetup(GXDLMSRegister voltage, List<GXDLMSRegister> sockets) {
         final GXDLMSPushSetup p = new GXDLMSPushSetup();
-        p.setDestination("localhost:4060");
+        p.setDestination(DlmsConfig.CLIENT_ENDPOINT);
         p.getPushObjectList()
                 .add(new GXSimpleEntry<>(voltage,
                         new GXDLMSCaptureObject(2, 0)));
-//        p.getPushObjectList()
-//                .add(new GXSimpleEntry<>(battery,
-//                        new GXDLMSCaptureObject(2, 0)));
+        for (GXDLMSRegister socket : sockets) {
+            p.getPushObjectList()
+                    .add(new GXSimpleEntry<>(socket,
+                            new GXDLMSCaptureObject(2, 0)));
+        }
         return p;
     }
 
     @Override
-    public void onBeforePush(GXDLMSPushSetup p) {
+    public void onBeforePush(PushListenerArgs args) {
         System.out.println("Sending Push message from supporting LD.");
 
-        for (Map.Entry<GXDLMSObject, GXDLMSCaptureObject> entry : p.getPushObjectList()) {
+        for (Map.Entry<GXDLMSObject, GXDLMSCaptureObject> entry : args.push().getPushObjectList()) {
             if (entry.getKey() instanceof GXDLMSClock c && entry.getValue().getAttributeIndex() == 2) {
                 c.setTime(c.now());
             } else if (entry.getKey() instanceof GXDLMSRegister data && entry.getValue().getAttributeIndex() == 2) {
@@ -118,8 +127,8 @@ public class MandjetSupportingLD extends ServingLogicalDevice {
     }
 
     @Override
-    public void onAfterPush(GXDLMSPushSetup p) {
-
+    public void onAfterPush(PushListenerArgs args) {
+        System.out.println("Push sent in " + args.frameNumber() + " frames.");
     }
 
     @Override

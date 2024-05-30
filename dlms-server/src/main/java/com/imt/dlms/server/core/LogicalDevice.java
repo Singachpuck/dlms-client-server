@@ -1,9 +1,10 @@
 package com.imt.dlms.server.core;
 
 import com.imt.dlms.server.ServerManager;
-import com.imt.dlms.server.service.DLMSNotifyService;
+import com.imt.dlms.server.config.DlmsConfig;
+import com.imt.dlms.server.service.notification.DLMSNotifyService;
 import com.imt.dlms.server.service.DLMSUtil;
-import com.imt.dlms.server.service.PushListener;
+import com.imt.dlms.server.service.notification.PushListener;
 import gurux.dlms.GXDLMSConnectionEventArgs;
 import gurux.dlms.GXDLMSNotify;
 import gurux.dlms.ValueEventArgs;
@@ -38,6 +39,7 @@ public abstract class LogicalDevice extends GXDLMSSecureServer2 implements PushL
                 DLMSUtil.PUBLIC_CLIENT_SAP,
                 sap,
                 InterfaceType.WRAPPER);
+        this.notify.getConformance().add(Conformance.GENERAL_BLOCK_TRANSFER);
         ln.setServerSAP(sap);
     }
 
@@ -75,7 +77,7 @@ public abstract class LogicalDevice extends GXDLMSSecureServer2 implements PushL
         boolean broadcast = (serverAddress & 0x3FFF) == 0x3FFF
                 || (serverAddress & 0x7F) == 0x7F;
         if (!(broadcast
-                || (serverAddress & 0x3FFF) == ServerManager.SERIAL_NUMBER % 10000 + 1000)) {
+                || (serverAddress & 0x3FFF) == DlmsConfig.SERIAL_NUMBER % 10000 + 1000)) {
             ret = this.getLogicalDeviceSAP() == serverAddress;
         }
         if (ret) {
