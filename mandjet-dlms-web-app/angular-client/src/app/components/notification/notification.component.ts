@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {Notification} from "../../model/notification";
+import {Notification, NotificationDescriptor} from "../../model/notification";
 import {NotificationService} from "../../services/notification.service";
 import {Toast} from 'bootstrap'
 
@@ -40,4 +40,6 @@ export class NotificationComponent implements OnInit {
       }
     });
   }
+
+  protected readonly NotificationDescriptor = NotificationDescriptor;
 }

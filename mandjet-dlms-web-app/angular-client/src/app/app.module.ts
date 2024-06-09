@@ -14,6 +14,8 @@ import {NotificationComponent} from "./components/notification/notification.comp
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import {NgOptimizedImage} from "@angular/common";
 import {ProfileComponent} from "./components/profile/profile.component";
+import {StompService} from "./services/stomp.service";
+import {rxStompServiceFactory} from "./helpers/stomp-factory";
 
 @NgModule({
   declarations: [
@@ -33,7 +35,13 @@ import {ProfileComponent} from "./components/profile/profile.component";
         ReactiveFormsModule,
         NgOptimizedImage
     ],
-  providers: [authInterceptorProviders, xhrInterceptorProviders],
+  providers: [
+    authInterceptorProviders,
+    xhrInterceptorProviders,
+    {
+      provide: StompService,
+      useFactory: rxStompServiceFactory
+    }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -21,6 +21,7 @@
             <th scope="col">P4</th>
             <th scope="col">P5</th>
             <th scope="col">P6</th>
+            <th scope="col">Timestamp</th>
           </tr>
           </thead>
           <tbody>
@@ -32,18 +33,22 @@
             <td>{{current[3]}}</td>
             <td>{{current[4]}}</td>
             <td>{{current[5]}}</td>
+            <td>{{current[6] | date: 'medium'}}</td>
           </tr>
           </tbody>
         </table>
       </div>
       <div class="tab-pane" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
         <h1 class="mt-3 text-center">Voltage</h1>
+        <h6 class="text-center">(Last Update: {{ currentMandjet.sensorValues.length > 0 && (currentMandjet.sensorValues[currentMandjet.sensorValues.length - 1][6] | date: 'medium') }})</h6>
         <div class="voltage-img">
           <span class="voltage-label">{{currentMandjet.voltage}} V</span>
           <img ngSrc="/assets/img/socket.jpg" alt="Socket" height="375" width="626">
         </div>
       </div>
       <div class="tab-pane battery-tab" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+        <h1 class="mt-3 text-center">Battery</h1>
+        <h6 class="text-center">(Last Update: {{lastUpdate | date: 'medium'}})</h6>
         <div class="progress">
           <div class="progress-bar" role="progressbar" [ngStyle]="{width: currentMandjet.battery+'%'}"
                [attr.aria-valuenow]="currentMandjet.battery" aria-valuemin="0" aria-valuemax="100">
