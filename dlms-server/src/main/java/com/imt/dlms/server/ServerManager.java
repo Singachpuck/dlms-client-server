@@ -82,7 +82,7 @@ public class ServerManager implements IGXMediaListener, IGXNetListener {
 
     private void setupMedia() throws Exception {
         final MediaConfig mediaConfig = new MediaConfig();
-        final MediaType mode = MediaType.valueOf(System.getenv("COMMUNICATION_MEDIA"));
+        final MediaType mode = MediaType.valueOf(System.getProperty("COMMUNICATION_MEDIA"));
         mediaConfig
                 .withMode(mode)
                 .withListener(this);
@@ -110,7 +110,7 @@ public class ServerManager implements IGXMediaListener, IGXNetListener {
         if (mode == MediaType.E5_LORA && media instanceof LoraE5SerialMedia l) {
             if (!l.joinNetwork()) {
                 this.close();
-                throw new LoraConfigurationException("Failed to join Lora Network. Check your configuration or tyr again later.");
+                throw new LoraConfigurationException("Failed to join Lora Network. Check your configuration or try again later.");
             }
         }
         notify.setMedia(media);

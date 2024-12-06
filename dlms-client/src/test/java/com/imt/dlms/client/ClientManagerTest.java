@@ -21,6 +21,7 @@ class ClientManagerTest {
 
     private IGXMedia media;
 
+    @Test
     void defaultTest() throws Exception {
         // 192.168.112.98
         final GXDLMSSecureClient client = new GXDLMSSecureClient(true, 16,

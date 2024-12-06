@@ -58,15 +58,47 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <properties>
-                <COMMUNICATION_MODE>TCP_IP</COMMUNICATION_MODE>
-            </properties>
+            <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <configuration>
+                        <environmentVariables>
+                            <COMMUNICATION_MEDIA>TCP_IP</COMMUNICATION_MEDIA>
+                        </environmentVariables>
+                        <systemProperties>
+                            <property>
+                                <key>COMMUNICATION_MEDIA</key>
+                                <value>TCP_IP</value>
+                            </property>
+                        </systemProperties>
+                    </configuration>
+                </plugin>
+            </plugins>
+            </build>
         </profile>
         <profile>
             <id>e5lora</id>
-            <properties>
-                <COMMUNICATION_MODE>E5_LORA</COMMUNICATION_MODE>
-            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <configuration>
+                            <environmentVariables>
+                                <COMMUNICATION_MEDIA>E5_LORA</COMMUNICATION_MEDIA>
+                            </environmentVariables>
+                            <systemProperties>
+                                <property>
+                                    <key>COMMUNICATION_MEDIA</key>
+                                    <value>E5_LORA</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
